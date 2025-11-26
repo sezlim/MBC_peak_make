@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 import config
 import part1_ui
-
+import part2_sync
 
 def filter_non_existent_files(file_list: list) -> list:
     """
@@ -372,6 +372,38 @@ def find_first_target_path(source_path: str, target_path: str, ext_list: list) :
 
     # 3. .rglob('*')로 모든 하위 파일 및 폴더를 재귀적으로 탐색
         for file_path in  add_source_p.rglob("*"):
+
+            if not os.path.exists(str(file_path.resolve())):
+                continue
+            if file_path.suffix == '.txt':
+                print(f"텍스트 파일 발견: {file_path}")
+                full_path_str = str(file_path.resolve())
+                tag_str = part2_sync.read_txt_tag(full_path_str, "TIME_STAMP")
+                print("txt 파일의 타임스템프를 확인해보겠습니다 (5분이상 경과된 txt는 멈춘걸로 간주하고 삭제)")
+                print(tag_str)
+                # 1-2. strptime 전에 None(읽기실패) 또는 빈문자열 확인
+                if not tag_str:
+                    print("타임스템프 태그를 읽을 수 없습니다.")
+                    if os.path.exists(full_path_str):
+                        os.remove(full_path_str)
+                    continue
+
+                    # 1-3. 시간 문자열 파싱 및 비교
+                time_format = "%Y-%m-%d %H:%M:%S"  # 초까지 나오는 포맷
+                saved_time = datetime.datetime.strptime(tag_str, time_format)
+
+                if datetime.datetime.now() - saved_time < datetime.timedelta(
+                        minutes=5):
+                    print("최신 파일임으로 스킵합니다.")
+                    continue  # N분 이내 (최신이므로 스킵)
+                else:
+                    print("최신화가 5분 이상 경과된 파일 작동이 멈춘것으로 간주하고 새로 만듭니다.")
+                    os.remove(full_path_str)  ###TXT 파일 삭제하고
+                    time.sleep(5)
+                    continue  # N분 지남 (오래됐으므로 생성)
+
+
+
 
             # 4. 파일이면서, 확장자가 ext_list에 포함되는지 확인
             if file_path.is_file() and (file_path.suffix.lower() in allowed_ext_set):

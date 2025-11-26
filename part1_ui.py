@@ -30,31 +30,18 @@ from pathlib import Path
 from typing import Optional
 import random
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 ################ 글로벌 변수 정의
 
 premiere_hwnd = 0
-current_file_path =""
-root=""
+current_file_path = ""
+root = ""
 status_text_var = None
-btn_start =None
-btn_cancel =None
-running_thread = None # 현재 실행 중인 스레드를 저장
+btn_start = None
+btn_cancel = None
+running_thread = None  # 현재 실행 중인 스레드를 저장
 combo_pgm = None
 combo_scan_day = None
-stop_flag = threading.Event() # 작업을 중지시키기 위한 플래그 (이벤트 객체)
+stop_flag = threading.Event()  # 작업을 중지시키기 위한 플래그 (이벤트 객체)
 
 ##################### 탐색 부분에 관한 변수##########
 
@@ -65,21 +52,7 @@ day_before_scan = config.scan_day
 ##################### 탐색 부분에 관한 변수 ##########
 
 
-
 ##################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ############################################
@@ -147,7 +120,6 @@ def is_mxf_over_limit(file_path: str, limit_hours: float) -> bool:
     return False
 
 
-
 def make_folder(target_path):
     try:
         # os.makedirs()는 경로상의 모든 중간 디렉터리도 함께 생성합니다.
@@ -157,7 +129,6 @@ def make_folder(target_path):
     except OSError as e:
         # UNC 경로에 대한 권한 문제 등으로 인해 생성에 실패할 경우 에러 처리
         print(f"오류: 폴더 생성에 실패했습니다. 경로/권한을 확인하세요: {e}")
-
 
 
 ############################################
@@ -189,10 +160,6 @@ def get_pgm_number_from_path(ingest_file_path: str) -> str | None:
         return match.group(1)
     else:
         return None
-
-
-
-
 
 
 def rename_file_extension(original_path: Union[str, Path], new_ext: str) -> bool:
@@ -246,6 +213,7 @@ def rename_file_extension(original_path: Union[str, Path], new_ext: str) -> bool
     except Exception as e:
         print(f"❌ 파일 이름 변경 실패: {e}")
         return False
+
 
 def check_import_status(file_path: str, target_char: str) -> bool:
     """
@@ -409,8 +377,6 @@ def count_pek_file_and_return_list(root_path):
     return pek_count, pek_file_paths
 
 
-
-
 def find_ffprobe_path() -> Optional[Path]:
     """
     Python 실행 파일의 위치부터 시작하여 모든 하위 폴더를 재귀적으로 탐색하여 ffprobe 실행 파일을 찾습니다.
@@ -512,10 +478,6 @@ def is_file_silent(ingest_file_path: str, threshold_dbfs: int = -50) -> bool:
         return False
 
 
-
-
-
-
 def terminate_program_by_hwnd(hwnd: int) -> bool:
     """
     주어진 HWND를 사용하여 해당 창을 소유한 프로세스를 강제로 종료합니다.
@@ -560,23 +522,6 @@ def terminate_program_by_hwnd(hwnd: int) -> bool:
     except Exception as e:
         print(f"알 수 없는 오류 발생: {e}")
         return False
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def check_and_prompt_premiere_shutdown():
@@ -645,7 +590,6 @@ def check_and_prompt_premiere_shutdown():
         return True
 
 
-
 def find_all_program_hwnds_robust(process_name: str) -> list[int]:
     """
     프로세스 이름으로 해당하는 모든 최상위 윈도우 핸들(list[int])을 찾습니다.
@@ -699,8 +643,6 @@ def find_all_program_hwnds_robust(process_name: str) -> list[int]:
     else:
         print(f"정보: '{process_name}' 프로세스는 실행 중이나, 적절한 윈도우를 찾을 수 없습니다.")
         return []
-
-
 
 
 def find_all_program_hwnds(exe_name: str) -> list[int]:
@@ -797,8 +739,10 @@ def get_premiere_hwnds() -> list[int]:
         # 혹시 모를 상황에 대비하거나, 아니면 빈 리스트를 반환합니다.
         # 여기서는 안전하게 빈 리스트를 반환합니다.
         return []
+
+
 ############################################################################################################3
-def update_status_file(target_folder: str, refresh_time_min = 20) -> bool:
+def update_status_file(target_folder: str, refresh_time_min=20) -> bool:
     """
     target_folder에 status.txt 파일을 생성 또는 업데이트합니다.
 
@@ -879,14 +823,6 @@ def update_status_file(target_folder: str, refresh_time_min = 20) -> bool:
     return False
 
 
-
-
-
-
-
-
-
-
 ##############################################################################
 
 
@@ -894,12 +830,10 @@ def worker_loop():
     """ 백그라운드에서 실행될 반복 작업 로직 """
     global stop_flag
 
-
     ### 한번 정리하고 시작 캐시폴더
     # local_adobe_cache_path = r"C:\Adobe_Cache"
     # clear_subfolders_in_cache(local_adobe_cache_path,["Media Cache Files","Media Cache","Peak Files","Analyzer Cache Files"])
     #
-
 
     # 예시: 1초마다 반복되는 루프
     stop_flag.clear()  # 작업 시작 시 플래그 초기화
@@ -910,7 +844,7 @@ def worker_loop():
             source_path = r"\\npsmain.mbcnps.com\ROOT\MASTER"
             target_path = r"\\npsmain.mbcnps.com\SYSTEMS\AME_PEAK_MAKE_FOLDER"
             folders_to_skip = ["ProjectShare", "ShareFolder", ".temp"]
-            ext_list = ['.mxf', '.wav', '.mov', '.MXF', '.WAV', '.MOV']
+            ext_list = ['.mxf', '.wav', '.mov', '.MXF', '.WAV', '.MOV','.txt']
             days_to_scan = int(day_before_scan)
             print(f"스캔데이 입니다. {days_to_scan}")
 
@@ -923,40 +857,40 @@ def worker_loop():
                 if update_status_file(target_path):
                     print("폴더 싱크 들어갑니다.")
                     for add_path in config.pgm:
-                        source_pgm_path = os.path.join(source_path,add_path)
-                        target_pgm_path = os.path.join(target_path,add_path)
-                        part2_sync.create_optimized_stubs(source_pgm_path, target_pgm_path, days_to_scan,folders_to_skip, ext_list)
+                        source_pgm_path = os.path.join(source_path, add_path)
+                        target_pgm_path = os.path.join(target_path, add_path)
+                        part2_sync.create_optimized_stubs(source_pgm_path, target_pgm_path, days_to_scan,
+                                                          folders_to_skip, ext_list)
 
                 need_to_optimize = False
-
 
             ## 스캔 폴더에 폴더 동기화 완료 (import 할 준비 완료)
 
             while True:
                 status_text_var.set(f"작업 대상을 찾습니다..")
-                counter += 1 ## 안에도 counter 있어야 할듯
-                if counter % 100 == 0: #파일 100개 쯤 만들면
-                     # [수정] 헬퍼 함수 호출 (핸들 목록을 반환)
+                counter += 1  ## 안에도 counter 있어야 할듯
+                if counter % 100 == 0:  # 파일 100개 쯤 만들면
+                    # [수정] 헬퍼 함수 호출 (핸들 목록을 반환)
                     config.terminate_premiere_process()
                     time.sleep(10)
                     try:
-                     # 경로의 파일을 실행합니다.
+                        # 경로의 파일을 실행합니다.
 
-                     config.launch_premiere_from_config()
-                     time.sleep(10)
+                        config.launch_premiere_from_config()
+                        time.sleep(10)
 
                     except FileNotFoundError:
-                     print(f"오류: 파일을 찾을 수 없습니다: {config.startup_proj_path}")
+                        print(f"오류: 파일을 찾을 수 없습니다: {config.startup_proj_path}")
                     except Exception as e:
-                     print(f"파일 실행 중 오류 발생: {e}")
+                        print(f"파일 실행 중 오류 발생: {e}")
                     on_hide()
-
 
                 making_time = None
                 print("루프입니다.-1")
                 ## (탐색할 폴더, 원소스 폴더)
 
-                ingest_file_path, stem_file_path = part3_import_upload.find_first_target_path(target_path,source_path,ext_list)
+                ingest_file_path, stem_file_path = part3_import_upload.find_first_target_path(target_path, source_path,
+                                                                                              ext_list)
                 if ingest_file_path == None:
                     need_to_optimize = True
                     print("100초 쉬고 다시한번 스캔합니다.")
@@ -965,21 +899,18 @@ def worker_loop():
                 else:
                     PGM_number = config.get_pgm_number_from_path(ingest_file_path)
                     ##### PGM 번호 가져오는 코드
-                    nas_adobe_DB_cache_path = os.path.join(source_path,str(PGM_number))
-                    nas_adobe_DB_cache_path = os.path.join(nas_adobe_DB_cache_path,"ShareFolder")
-                    nas_adobe_DB_cache_path = os.path.join(nas_adobe_DB_cache_path,"UserFolder")
+                    nas_adobe_DB_cache_path = os.path.join(source_path, str(PGM_number))
+                    nas_adobe_DB_cache_path = os.path.join(nas_adobe_DB_cache_path, "ShareFolder")
+                    nas_adobe_DB_cache_path = os.path.join(nas_adobe_DB_cache_path, "UserFolder")
                     nas_adobe_DB_cache_path = os.path.join(nas_adobe_DB_cache_path, "Adobe_Cache")
                     nas_adobe_DB_cache_path = os.path.join(nas_adobe_DB_cache_path, "Media Cache")
                     os.makedirs(nas_adobe_DB_cache_path, exist_ok=True)
                     print(f"폴더 준비 완료: {nas_adobe_DB_cache_path}")
 
-                    backup_nas_adobe_DB_cache_path = nas_adobe_DB_cache_path.replace("npsmain.mbcnps.com", "npsbackup.mbcnps.com")
+                    backup_nas_adobe_DB_cache_path = nas_adobe_DB_cache_path.replace("npsmain.mbcnps.com",
+                                                                                     "npsbackup.mbcnps.com")
                     os.makedirs(backup_nas_adobe_DB_cache_path, exist_ok=True)
                     print(f"폴더 준비 완료: {backup_nas_adobe_DB_cache_path}")
-
-
-
-
 
                 if is_mxf_over_limit(ingest_file_path, 10):
                     print("10시간 넘는 mxf는 프리미어 버그로 진행하지 않습니다.")
@@ -1000,9 +931,6 @@ def worker_loop():
                 else:
                     print("mxf가 아니거나 10시간 이하의 파일입니다.")
 
-
-
-
                 # 함수 실행 및 결과 출력
                 pc_name, ip_address = config.get_pc_info()
                 # 1. 현재 시간을 datetime 객체로 가져옵니다.
@@ -1012,34 +940,24 @@ def worker_loop():
                 # 3. datetime 객체를 포맷에 맞는 문자열로 변환합니다. (strftime 사용)
                 time_stamp = time_stamp.strftime(time_format)
 
-                content_in_txt =f"""
+                content_in_txt = f"""
                 <PC_NAME>{pc_name}</PC_NAME>
                 <IP_ADDRESS>{ip_address}</IP_ADDRESS>
                 <TIME_STAMP>{time_stamp}</TIME_STAMP>
                 """
 
-
-
-                mxf_to_txt_path = part3_import_upload.change_extension_and_fill_content_if_txt(stem_file_path,"txt",content_in_txt)
+                mxf_to_txt_path = part3_import_upload.change_extension_and_fill_content_if_txt(stem_file_path, "txt",
+                                                                                               content_in_txt)
                 if mxf_to_txt_path == False:
                     os.remove(stem_file_path)
                     continue
                 #########################
                 #### 인제스트 대상파일의 길이를 보고 10시간이 넘으면 빠꾸 시켜야 할듯 ;;
 
-
-
-
-
-
-
                 ###################
                 # config.command_txt_path: 파일 경로가 저장된 변수 (예: "C:/path/to/command.txt")
                 file_path = config.command_txt_path
                 content_to_write = f"{ingest_file_path},i,n"
-
-
-
 
                 try:
                     mcdb_file_name = None
@@ -1051,20 +969,28 @@ def worker_loop():
                     status_text_var.set(f"{ingest_file_path}작업 중입니다.")
                     making_time = datetime.datetime.now()
                     time.sleep(7)
-                    mcdb_file_name = os.path.basename(ingest_file_path)+" 48000.pek"
-                    mcdb_file_full_path = config.find_files_with_phrase_in_targetfolder(config.nas_cache_path,".mcdb",mcdb_file_name)
-                    print(f"찾은 mcdb 파일의 경로 입니다 {mcdb_file_full_path}")
+
+                    while True:
+                        mcdb_file_name = os.path.basename(ingest_file_path) + " 48000.pek"
+                        mcdb_file_full_path = config.find_files_with_phrase_in_targetfolder(config.nas_cache_path,
+                                                                                            ".mcdb", mcdb_file_name)
+                        print(f"찾은 mcdb 파일의 경로 입니다 {mcdb_file_full_path}")
+                        if mcdb_file_full_path:
+                            break
+                        else:
+                            print("5초 있다가 다시 찾아보겠습니다.")
+                            time.sleep(5)
+
+
                 except FileNotFoundError:
                     print(f"❌ 오류: 지정된 경로를 찾을 수 없습니다: {file_path}")
                 except Exception as e:
                     print(f"❌ 파일을 쓰는 중 오류 발생: {e}")
 
-
                 ### 프리미어에 파일 import 완료
 
-
                 nas_cache_path = config.nas_cache_path
-                nas_cache_path = os.path.join(nas_cache_path,"Peak Files")
+                nas_cache_path = os.path.join(nas_cache_path, "Peak Files")
 
                 while True:
 
@@ -1075,11 +1001,9 @@ def worker_loop():
                     else:
                         print("watch_txt기입은 정상입니다 - 진행합니다")
 
-
                     print("임포트 이후에 다 만들어짐을 확인하는 루프입니다.-2")
 
-
-                    if is_file_silent(ingest_file_path): ## 혹시 pek를 만들지 않는 무음인지 탐색
+                    if is_file_silent(ingest_file_path):  ## 혹시 pek를 만들지 않는 무음인지 탐색
                         try:
                             file_path = config.command_txt_path
                             content_to_write = f"{ingest_file_path},r,n"
@@ -1092,13 +1016,18 @@ def worker_loop():
                         except Exception as e:
                             print(f"❌ 파일을 쓰는 중 오류 발생: {e}")
 
-                        mcdb_file_name = os.path.basename(ingest_file_path)
-                        mcdb_file_full_path = config.find_files_with_phrase_in_targetfolder(config.nas_cache_path,
-                                                                                            ".mcdb", mcdb_file_name)
-
+                        while True:
+                            mcdb_file_name = os.path.basename(ingest_file_path)
+                            mcdb_file_full_path = config.find_files_with_phrase_in_targetfolder(config.nas_cache_path,
+                                                                                                ".mcdb", mcdb_file_name)
+                            if mcdb_file_full_path:
+                                break
+                            else:
+                                print("5초 있다가 다시 찾아보겠습니다.")
+                                time.sleep(5)
                         ## pek 파일이 없는 무음이라 mcdb_file_path를 다시 잡습니다.
 
-                        config.copy_file_force(nas_adobe_DB_cache_path,mcdb_file_full_path)
+                        config.copy_file_force(nas_adobe_DB_cache_path, mcdb_file_full_path)
                         time.sleep(1)
                         config.move_file_force(backup_nas_adobe_DB_cache_path, mcdb_file_full_path)
                         print("무음이라 따로 작업하지 확장자 변경 후  나갑니다.")
@@ -1109,13 +1038,8 @@ def worker_loop():
                         time.sleep(15)
                         break
 
-
-
-
-
-
-                    time.sleep(15) ## 여기서 써치를 너무 빨리하는 경우가 생김
-                    list_of_pek = config.search_cache_files_by_datetime(nas_cache_path,ingest_file_path,making_time)
+                    time.sleep(15)  ## 여기서 써치를 너무 빨리하는 경우가 생김
+                    list_of_pek = config.search_cache_files_by_datetime(nas_cache_path, ingest_file_path, making_time)
                     time.sleep(15)  ## 여기서 써치를 너무 빨리하는 경우가 생김
                     list_of_pek = config.search_cache_files_by_datetime(nas_cache_path, ingest_file_path, making_time)
                     print(f"pek 파일 후보 리스트 입니다 {list_of_pek}")
@@ -1136,20 +1060,18 @@ def worker_loop():
                             print(f"❌ 오류: 지정된 경로를 찾을 수 없습니다: {file_path}")
                         except Exception as e:
                             print(f"❌ 파일을 쓰는 중 오류 발생: {e}")
-                            
+
                         print(f"{mxf_to_txt_path}의 확장자를 바꿉니다.(.finish)")
                         rename_file_extension(mxf_to_txt_path, ".finish")
                         print(f"확장자를 변경을 완료 했습니다")
                         time.sleep(15)
                         break
 
-
-
                     while True:
                         check = False
                         time.sleep(10)
                         print(f"피크파일 생성여부를 확인합니다. 현재 값 {check}")
-                        check =part3_import_upload.check_make_finish_by_binary(list_of_pek)
+                        check = part3_import_upload.check_make_finish_by_binary(list_of_pek)
                         print(f"피크파일 생성 결과입니다 {check}")
                         if check:
                             time.sleep(10)
@@ -1186,9 +1108,7 @@ def worker_loop():
                             ## 타임스탬프 찍기
                             continue
 
-
                     break
-
 
                 if stop_flag.wait(1):
                     break  # 취소 요청이 들어오면 루프 종료
@@ -1199,7 +1119,6 @@ def worker_loop():
                 break  # 취소 요청이 들어오면 루프 종료
             print("오류로 빠짐")
             time.sleep(5)
-
 
     print("작업 스레드 종료됨.")
 
@@ -1221,8 +1140,6 @@ def on_show():
         update_status(f"프리미어 프로 창 {len(hwnds)}개가 보이게 실행되었습니다.")
     else:
         update_status("프리미어 프로를 찾지 못함")
-
-
 
 
 def on_hide():
@@ -1332,7 +1249,6 @@ def on_start():
     # )
     # """ '시작' 버튼을 눌렀을 때 실행될 함수 """
 
-
     config.pgm = config.parse_pgm_range(config.pgm)
     random.shuffle(config.pgm)
     ### 일단 여기 넣기
@@ -1362,7 +1278,6 @@ def on_start():
     if status_text_var:
         status_text_var.set("✅ 작업중입니다...")
 
-
     # 3. 작업 스레드 시작
     stop_flag.clear()  # 확실하게 취소 플래그 초기화
     running_thread = threading.Thread(target=worker_loop)
@@ -1383,7 +1298,7 @@ def on_cancel():
     global running_thread
     global stop_flag
     global combo_pgm
-    global  combo_scan_day
+    global combo_scan_day
     """ '취소' 버튼을 눌렀을 때 실행될 함수 """
     print("취소 버튼 클릭")
 
@@ -1414,6 +1329,7 @@ def on_cancel():
         else:
             print("프로그램 종료 작업 실패.")
 
+
 def update_status(message):
     """ 하단 상태 메시지를 업데이트하는 헬퍼 함수 """
     # current_file_path (StringVar)의 값을 변경하면
@@ -1426,10 +1342,9 @@ def update_status_from_main(message):
     global status_text_var
     if status_text_var:
         status_text_var.set(f"▶ {message}")
+
+
 # --- gui생성 전 사전작업 (Main Window) ---
-
-
-
 
 
 def ui():
@@ -1441,7 +1356,6 @@ def ui():
     global combo_pgm
     global combo_scan_day
 
-
     # --- GUI 설정 (Main Window) ---
     # 1. 메인 윈도우 생성
     root = tk.Tk()
@@ -1450,7 +1364,7 @@ def ui():
     root.title("피크파일 도우미")  # 윈도우 상단 표시줄 제목
     root.geometry("750x700")  # 윈도우 초기 크기
     root.configure(bg="#f0f0f0")  # 윈도우 전체 배경색 (밝은 회색)
-    root.attributes("-topmost", True) ## 항상 맨 위에 위치
+    root.attributes("-topmost", True)  ## 항상 맨 위에 위치
     # --- 2. 텍스트 영역 (제목/설명) ---
     # (상단 버튼이 사라지고 이 부분이 최상단이 됨)
     frame_text = tk.Frame(root, pady=10, bg=root.cget('bg'))
@@ -1463,7 +1377,9 @@ def ui():
 
     # 설명 (검은색)
     desc_font = tkFont.Font(family="Malgun Gothic", size=14)
-    lbl_desc = tk.Label(frame_text, text="\n\n<선택 PGM>의\n01_ingest 부터 09_Export의 폴더를 와치하면서 피크파일을 생성합니다.\n\n 준비 시간이 30초 가량 소요됩니다.\n\n 프리미어 버그로 10시간 이상 동영상은 피크를 만들지 않습니다.\n\n Q&A LSJ(319077) ", font=desc_font, fg="black", bg=root.cget('bg'))
+    lbl_desc = tk.Label(frame_text,
+                        text="\n\n<선택 PGM>의\n01_ingest 부터 09_Export의 폴더를 와치하면서 피크파일을 생성합니다.\n\n 준비 시간이 30초 가량 소요됩니다.\n\n 프리미어 버그로 10시간 이상 동영상은 피크를 만들지 않습니다.\n\n Q&A LSJ(319077) ",
+                        font=desc_font, fg="black", bg=root.cget('bg'))
     lbl_desc.pack()  # 위쪽(5), 아래쪽(0) 여백
 
     # --- 3. 메인 버튼 (시작/취소) ---
@@ -1477,7 +1393,6 @@ def ui():
     # [수정] 아래 잘못된 코드를 삭제하고, 시작/취소 버튼 pack 코드를 복원합니다.
     # lbl_desc.pack(anchor="w", pady=(5, 0))  <-- 이 줄이 잘못되었습니다.
     btn_start.pack(side=tk.LEFT, padx=10)
-
 
     # [추가] 시작 버튼과 취소 버튼 사이에 텍스트 레이블 추가
     # (start_font를 재사용하거나 새 폰트를 정의할 수 있습니다.)
@@ -1501,8 +1416,6 @@ def ui():
     # 아래쪽(보이기/숨기기)과는 0만큼 떨어지게 합니다.
     lbl_interim.pack(pady=(10, 0))
 
-
-
     # --- [추가됨] 2.5 PGM 선택 드롭다운 영역 ---
     frame_input = tk.Frame(root, pady=5, bg=root.cget('bg'))
     frame_input.pack()
@@ -1511,9 +1424,9 @@ def ui():
     lbl_pgm = tk.Label(frame_input, text="PGM 선택 : ", font=("Malgun Gothic", 12, "bold"), bg=root.cget('bg'))
     lbl_pgm.pack(side=tk.LEFT, padx=5)
 
-
     # 드롭다운 값 생성 (PGM00 ~ PGM99)
-    pgm_values = ["전구간","PGM00 - PGM09","PGM10 - PGM19","PGM20 - PGM29","PGM30 - PGM39","PGM40 - PGM49","PGM50 - PGM59","PGM60 - PGM69","PGM70 - PGM79","PGM80 - PGM89","PGM90 - PGM99"]
+    pgm_values = ["전구간", "PGM00 - PGM09", "PGM10 - PGM19", "PGM20 - PGM29", "PGM30 - PGM39", "PGM40 - PGM49",
+                  "PGM50 - PGM59", "PGM60 - PGM69", "PGM70 - PGM79", "PGM80 - PGM89", "PGM90 - PGM99"]
     # 변수 바인딩
     pgm_var = tk.StringVar()
     pgm_var.set("전구간")  # config에 값이 있으면 가져오고 없으면 PGM01
@@ -1535,26 +1448,25 @@ def ui():
     # 이벤트 바인딩 (값이 선택될 때마다 함수 실행)
     combo_pgm.bind("<<ComboboxSelected>>", on_pgm_changed)
 
-
     # --- [추가됨] 2.5 PGM 선택 드롭다운 영역 ---
     frame2_input = tk.Frame(root, pady=5, bg=root.cget('bg'))
     frame2_input.pack()
 
     # 라벨
-    lbl_scan_day = tk.Label(frame2_input, text="인제스트 된지 N일 전 파일부터 만들겠습니다. : ", font=("Malgun Gothic", 12, "bold"), bg=root.cget('bg'))
+    lbl_scan_day = tk.Label(frame2_input, text="인제스트 된지 N일 전 파일부터 만들겠습니다. : ", font=("Malgun Gothic", 12, "bold"),
+                            bg=root.cget('bg'))
     lbl_scan_day.pack(side=tk.LEFT, padx=5)
 
-
     # 드롭다운 값 생성 (PGM00 ~ PGM99)
-    scan_day_values = [90,60,30,10,5,3,1]
+    scan_day_values = [90, 60, 30, 10, 5, 3, 1]
     scan_day_var = tk.StringVar()
     scan_day_var.set(3)  # config에 값이 있으면 가져오고 없으면 1
 
     # 콤보박스 생성 (읽기 전용으로 설정하여 직접 타이핑 방지)
-    combo_scan_day = ttk.Combobox(frame2_input, textvariable=scan_day_var, values=scan_day_values, state="readonly", width=18,
-                             font=("Malgun Gothic", 11))
+    combo_scan_day = ttk.Combobox(frame2_input, textvariable=scan_day_var, values=scan_day_values, state="readonly",
+                                  width=18,
+                                  font=("Malgun Gothic", 11))
     combo_scan_day.pack(side=tk.LEFT, padx=5)
-
 
     # [중요] 드롭다운 변경 시 config.pgm 업데이트 함수
     def on_scan_day_changed(event):
@@ -1567,8 +1479,6 @@ def ui():
 
     # 이벤트 바인딩 (값이 선택될 때마다 함수 실행)
     combo_scan_day.bind("<<ComboboxSelected>>", on_scan_day_changed)
-
-
 
     # --- 3. 하단 토글 버튼 (보이기/숨기기) ---
     # (이전 코드에서는 섹션 3이었으나, 4로 정정합니다)
@@ -1622,8 +1532,6 @@ def ui():
         if not hwnds:
             sys.exit(0)
         status_text_var.set(f"취소 버튼으로만 닫을 수 있습니다.")
-
-
 
     # [추가] 윈도우 닫기 프로토콜을 위 함수로 연결
     root.protocol("WM_DELETE_WINDOW", disable_close_event)

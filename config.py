@@ -711,7 +711,10 @@ def find_files_with_phrase_in_targetfolder(target_folder, extension, phrase):
                     print(f"파일 읽기 오류 ({full_path}): {e}")
                     continue
 
-    return found_paths[0]
+    if found_paths:
+        return found_paths[0]
+    else:
+        return None  # 또는 "못 찾음" 등의 메시지나 False
 
 
 # print(find_files_with_phrase("C:\Adobe_Cache",".mcdb","PGM02-Clip0001-308770.mxf 48000.pek"))
