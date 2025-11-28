@@ -867,17 +867,37 @@ def worker_loop():
             ## 스캔 폴더에 폴더 동기화 완료 (import 할 준비 완료)
 
             while True:
+                print("프리미어프로 켜져있는지 확인")
+
+                while True:
+                    hwnds = get_premiere_hwnds()
+                    if hwnds:
+                        break
+                    else:
+                        try:
+                            # 경로의 파일을 실행합니다.
+                            config.launch_premiere_from_config()
+                            time.sleep(30)
+
+                        except:
+                            pass
+
+                        on_hide()
+
+
+
+
                 status_text_var.set(f"작업 대상을 찾습니다..")
                 counter += 1  ## 안에도 counter 있어야 할듯
                 if counter % 100 == 0:  # 파일 100개 쯤 만들면
                     # [수정] 헬퍼 함수 호출 (핸들 목록을 반환)
                     config.terminate_premiere_process()
-                    time.sleep(10)
+                    time.sleep(30)
                     try:
                         # 경로의 파일을 실행합니다.
 
                         config.launch_premiere_from_config()
-                        time.sleep(10)
+                        time.sleep(100)
 
                     except FileNotFoundError:
                         print(f"오류: 파일을 찾을 수 없습니다: {config.startup_proj_path}")
@@ -888,6 +908,9 @@ def worker_loop():
                 making_time = None
                 print("루프입니다.-1")
                 ## (탐색할 폴더, 원소스 폴더)
+                print("mcdb 폴더에 쌓인 가비지를 정리해보겠습니다.")
+                config.delete_old_files(config.nas_cache_path, ".mcdb", 1)
+                print("mcdb 폴더에 쌓인 가비지를 삭제를 완료 했습니다.")
 
                 ingest_file_path, stem_file_path = part3_import_upload.find_first_target_path(target_path, source_path,
                                                                                               ext_list)
@@ -970,8 +993,11 @@ def worker_loop():
                     making_time = datetime.datetime.now()
                     time.sleep(7)
 
+                    ### 이거 꼬이는 경우 없으려나 ?
+                    mcdb_cnt = 0
                     while True:
-                        mcdb_file_name = os.path.basename(ingest_file_path) + " 48000.pek"
+                        mcdb_cnt += 1
+                        mcdb_file_name = os.path.basename(ingest_file_path)
                         mcdb_file_full_path = config.find_files_with_phrase_in_targetfolder(config.nas_cache_path,
                                                                                             ".mcdb", mcdb_file_name)
                         print(f"찾은 mcdb 파일의 경로 입니다 {mcdb_file_full_path}")
@@ -980,6 +1006,14 @@ def worker_loop():
                         else:
                             print("5초 있다가 다시 찾아보겠습니다.")
                             time.sleep(5)
+
+                        if mcdb_cnt >10:
+                            break
+
+
+                    if mcdb_cnt >10:
+                        mcdb_cnt = 0
+                        continue
 
 
                 except FileNotFoundError:
@@ -1016,20 +1050,15 @@ def worker_loop():
                         except Exception as e:
                             print(f"❌ 파일을 쓰는 중 오류 발생: {e}")
 
-                        while True:
-                            mcdb_file_name = os.path.basename(ingest_file_path)
-                            mcdb_file_full_path = config.find_files_with_phrase_in_targetfolder(config.nas_cache_path,
-                                                                                                ".mcdb", mcdb_file_name)
-                            if mcdb_file_full_path:
-                                break
-                            else:
-                                print("5초 있다가 다시 찾아보겠습니다.")
-                                time.sleep(5)
-                        ## pek 파일이 없는 무음이라 mcdb_file_path를 다시 잡습니다.
+
 
                         config.copy_file_force(nas_adobe_DB_cache_path, mcdb_file_full_path)
                         time.sleep(1)
-                        config.move_file_force(backup_nas_adobe_DB_cache_path, mcdb_file_full_path)
+                        config.copy_file_force(backup_nas_adobe_DB_cache_path, mcdb_file_full_path)
+                        try:
+                            os.remove(mcdb_file_full_path)
+                        except:
+                            pass
                         print("무음이라 따로 작업하지 확장자 변경 후  나갑니다.")
                         print(f"{mxf_to_txt_path}의 확장자를 바꿉니다.(.finish)")
                         rename_file_extension(mxf_to_txt_path, ".finish")
@@ -1054,7 +1083,11 @@ def worker_loop():
                             time.sleep(7)
                             config.copy_file_force(nas_adobe_DB_cache_path, mcdb_file_full_path)
                             time.sleep(1)
-                            config.move_file_force(backup_nas_adobe_DB_cache_path, mcdb_file_full_path)
+                            config.copy_file_force(backup_nas_adobe_DB_cache_path, mcdb_file_full_path)
+                            try:
+                                os.remove(mcdb_file_full_path)
+                            except:
+                                pass
                             print("db 파일 옴기기 성공")
                         except FileNotFoundError:
                             print(f"❌ 오류: 지정된 경로를 찾을 수 없습니다: {file_path}")
@@ -1085,7 +1118,11 @@ def worker_loop():
                                 time.sleep(7)
                                 config.copy_file_force(nas_adobe_DB_cache_path, mcdb_file_full_path)
                                 time.sleep(1)
-                                config.move_file_force(backup_nas_adobe_DB_cache_path, mcdb_file_full_path)
+                                config.copy_file_force(backup_nas_adobe_DB_cache_path, mcdb_file_full_path)
+                                try:
+                                    os.remove(mcdb_file_full_path)
+                                except:
+                                    pass
                                 print("피크파일을 옴겼습니다")
                             except FileNotFoundError:
                                 print(f"❌ 오류: 지정된 경로를 찾을 수 없습니다: {file_path}")
@@ -1427,6 +1464,11 @@ def ui():
     # 드롭다운 값 생성 (PGM00 ~ PGM99)
     pgm_values = ["전구간", "PGM00 - PGM09", "PGM10 - PGM19", "PGM20 - PGM29", "PGM30 - PGM39", "PGM40 - PGM49",
                   "PGM50 - PGM59", "PGM60 - PGM69", "PGM70 - PGM79", "PGM80 - PGM89", "PGM90 - PGM99"]
+
+    pgm_values += [f"PGM{i:02d}" for i in range(100)]
+
+
+
     # 변수 바인딩
     pgm_var = tk.StringVar()
     pgm_var.set("전구간")  # config에 값이 있으면 가져오고 없으면 PGM01

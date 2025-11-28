@@ -784,3 +784,51 @@ def copy_file_force(target_folder, file_path):
     except Exception as e:
         print(f"File Copy Failed: {e}")
         return False
+
+
+def delete_old_files(folder_path, extension, days):
+    """
+    지정된 폴더 및 하위 폴더에서 특정 확장자의 파일을 찾아
+    지정된 기간(일) 이상 지난 파일을 삭제합니다.
+
+    :param folder_path: 탐색할 최상위 폴더 경로 (문자열)
+    :param extension: 삭제 대상 파일 확장자 (예: ".log", "txt")
+    :param days: 기준이 되는 날짜 (일 단위, 정수)
+    """
+
+    # 1. 확장자 처리 (점(.)이 없으면 붙여줌)
+    if not extension.startswith('.'):
+        extension = '.' + extension
+
+    # 2. 기준 시간 계산 (현재 시간 - days를 초 단위로 변환)
+    now = time.time()
+    cutoff_time = now - (days * 86400)  # 1일 = 86400초
+
+    deleted_count = 0
+
+    print(f"--- 검색 시작: {folder_path} (확장자: {extension}, {days}일 이상 경과) ---")
+
+    # 3. 폴더 탐색 (os.walk로 하위 폴더까지 모두 순회)
+    for root, dirs, files in os.walk(folder_path):
+        for filename in files:
+            # 확장자 확인
+            if filename.lower().endswith(extension.lower()):
+                file_path = os.path.join(root, filename)
+
+                try:
+                    # 파일의 시간 정보 가져오기
+                    # os.path.getmtime: 마지막 수정 시간 (일반적으로 더 안전함)
+                    # os.path.getctime: 파일 생성 시간 (엄격히 생성일 기준일 경우 사용)
+                    file_time = os.path.getmtime(file_path)
+
+                    # 4. 시간 비교 및 삭제
+                    if file_time < cutoff_time:
+                        os.remove(file_path)
+                        print(f"[삭제됨] {file_path}")
+                        deleted_count += 1
+
+                except Exception as e:
+                    print(f"[오류] 파일 삭제 실패 ({filename}): {e}")
+
+    print(f"--- 완료: 총 {deleted_count}개 파일 삭제됨 ---")
+# delete_old_files(folder_path, "log", 30) # 30일 이상 지난 .log 파일 삭제
